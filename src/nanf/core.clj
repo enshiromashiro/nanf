@@ -42,33 +42,62 @@
 (def +window-text+
   {:title "nanf"
    :open "開く"
-   :run "解析"})
+   :run "解析"
+   :init ";; ここに結果が出ます\n"
+   :error "\n[エラー]\n"
+   :no-file "ファイルを選択してください\n"
+   :no-nan "nanを同じディレクトリに置いてください\n"})
 
 
-(defn run-nan [fpath & opts]
+(defn run-nan [fpath]
   "Execute nan"
-  (sh (.getAbsolutePath (file (executable-name +nan-bin+)))
-      fpath opts))
+  (apply sh `(~(.getAbsolutePath (file (executable-name +nan-bin+)))
+              ~fpath "-s")))
+
+(defn error-msg [& strs]
+  (apply str (concat (:error +window-text+) strs)))
+
+(defn make-open-clicked [path frame]
+  #(.setText path (show-open-chooser frame
+                                     "text file (*.txt)"
+                                     ["txt"])))
+
+
+(defn make-run-clicked [path result]
+  (letfn [(append [s] (.append result s))]
+    #(let [p (.getText path)]
+       (if (or (nil? p) (empty? p))
+         (append (error-msg (:no-file +window-text+)))
+         (try 
+           (let [ret (run-nan p)]
+             (if (and (empty? (:err ret)) (zero? (:exit ret)))
+               (append (str "\n" (:out ret)))
+               (append (error-msg "エラーコード: "
+                                  (:exit ret)
+                                  "\nエラーメッセージ: "
+                                  (:err ret)))))
+           (catch java.io.IOException e
+             (append (error-msg (:error +window-text+)
+                                (.getMessage e) "\n"
+                                (:no-nan +window-text+)))))))))
+
 
 (defn -main [& args]
   "nanf main"
   (with-jframe [frame (:title +window-text+)]
     (let [path-txt (JTextField.)
-          result-txt (JTextArea. ";; ここに結果が出ます")
+          result-txt (JTextArea. (:init +window-text+))
           result-pane (JScrollPane. result-txt
                                     JScrollPane/VERTICAL_SCROLLBAR_ALWAYS
                                     JScrollPane/HORIZONTAL_SCROLLBAR_NEVER)
           open-btn (JButton. (:open +window-text+))
-          run-btn (JButton. (:run +window-text+))]
+          run-btn (JButton. (:run +window-text+))
+          openclicked (make-open-clicked path-txt frame)
+          runclicked (make-run-clicked path-txt result-txt)]
       (add-listener [Mouse open-btn]
-        (mouseClicked [e]
-          (.setText path-txt (show-open-chooser frame
-                                                "text file (*.txt)"
-                                                ["txt"]))))
+        (mouseClicked [e] (openclicked)))
       (add-listener [Mouse run-btn]
-        (mouseClicked [e]
-          (.append result-txt
-                   (str (:out (run-nan (.getText path-txt)))))))
+        (mouseClicked [e] (runclicked)))
       (add-listener [Window frame]
         (windowClosed [e] (System/exit 0)))
       (doto result-txt
@@ -81,15 +110,13 @@
                        :add** run-btn
                        :add*** result-pane
                        :setLayout (gridbag-layout
-                                   [result-pane
-                                    {:gridx 0 :gridy 1
-                                     :weightx 1 :weighty 1
-                                     :gridwidth 3
-                                     :fill :both}]
-                                   [path-txt
-                                    {:gridx 0 :gridy 0
-                                     :weightx 1 :weighty 0
-                                     :gridwidth 1
-                                     :fill :horizontal}])
+                                   [result-pane {:gridx 0 :gridy 1
+                                                 :weightx 1 :weighty 1
+                                                 :gridwidth 3
+                                                 :fill :both}]
+                                   [path-txt {:gridx 0 :gridy 0
+                                              :weightx 1 :weighty 0
+                                              :gridwidth 1
+                                              :fill :horizontal}])
                        :setPreferredSize (dim +window-width+ +window-height+)}))
         (.pack)))))
