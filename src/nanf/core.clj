@@ -16,7 +16,8 @@
         [util.util
          :only [windows?
                 executable-name]])
-  (:import (java.io File)
+  (:import (java.awt Cursor)
+           (java.io File)
            (javax.swing JButton
                         JScrollPane
                         JTextArea
@@ -130,12 +131,14 @@
                                      "text file (*.txt)"
                                      ["txt"])))
 
-(defn make-run-clicked [path result]
+(defn make-run-clicked [path result frame]
   (letfn [(append [s] (.append result s))]
     #(let [p (.getText path)]
+       (.setCursor frame (Cursor/getPredefinedCursor Cursor/WAIT_CURSOR))
        (if (or (nil? p) (empty? p))
          (append (error-msg (:no-file +window-text+)))
-         (append (analyze p))))))
+         (append (analyze p)))
+       (.setCursor frame (Cursor/getDefaultCursor)))))
 
 
 (defn -main [& args]
@@ -149,7 +152,7 @@
           open-btn (JButton. (:open +window-text+))
           run-btn (JButton. (:run +window-text+))
           openclicked (make-open-clicked path-txt frame)
-          runclicked (make-run-clicked path-txt result-txt)]
+          runclicked (make-run-clicked path-txt result-txt frame)]
       (add-listener [Mouse open-btn]
         (mouseClicked [e] (openclicked)))
       (add-listener [Mouse run-btn]
