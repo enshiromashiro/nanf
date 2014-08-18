@@ -1,36 +1,29 @@
 # nanf
 
-FIXME: description
+Front-end for nan
 
 ## Installation
 
-Download from http://example.com/FIXME.
+Download nanf.jar from [here](https://bitbucket.org/subaru45/nanf/downloads), and move it to the directory installed [nan](https://bitbucket.org/subaru45/nan).
 
 ## Usage
 
-FIXME: explanation
+To run, double-click nanf.jar or type on command line:
 
-    $ java -jar nanf-0.1.0-standalone.jar [args]
+    $ java -jar nanf.jar
 
-## Options
+### TODO
 
-FIXME: listing of options this app accepts.
+* Factor out text datum to .properties
+* Warning details
+  * One frame for one analyzing
+  * Emphasise warning points with **colours**
+* Use [seasaw](https://github.com/daveray/seesaw) to access Swing API
 
-## Examples
-
-...
-
-### Bugs
-
-...
-
-### Any Other Sections
-### That You Think
-### Might be Useful
 
 ## License
 
-Copyright © 2014 FIXME
+Licensed under the [NYSL](http://www.kmonos.net/nysl/).
 
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+Copyright © 2014 subaru45
+
